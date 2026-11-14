@@ -6,11 +6,11 @@ import { Navbar } from '@/components/Navbar';
 import { Inter, Geist_Mono } from "next/font/google";
 import { cn } from "@/lib/utils";
 
-const geistMono = Geist_Mono({subsets:['latin'],variable:'--font-mono'});
+const geistMono = Geist_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
-const interHeading = Inter({subsets:['latin'],variable:'--font-heading'});
+const interHeading = Inter({ subsets: ['latin'], variable: '--font-heading' });
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const inter = Inter({ subsets: ['latin'], variable: '--font-sans' });
 
 export const metadata: Metadata = {
   title: 'PKPay+ Official Next.js Reference Store',
@@ -28,7 +28,7 @@ export default function RootLayout({
 
   const isTestKey =
     process.env.PKPAY_SECRET_KEY?.startsWith('sk_test_') ||
-    process.env.NEXT_PUBLIC_PKPAY_KEY?.startsWith('pk_test_') ||
+    process.env.NEXT_PUBLIC_PKPAY_PUBLISHABLE_KEY?.startsWith('pk_test_') ||
     process.env.PKPAY_MODE === 'test';
 
   const mode = isTestKey ? 'test' : 'live';

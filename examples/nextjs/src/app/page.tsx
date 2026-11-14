@@ -89,7 +89,7 @@ export default async function HomePage() {
   // Auto-detect mode from secret key (sk_test_... -> test mode) or PKPAY_MODE
   const isTestKey =
     process.env.PKPAY_SECRET_KEY?.startsWith('sk_test_') ||
-    process.env.NEXT_PUBLIC_PKPAY_KEY?.startsWith('pk_test_') ||
+    process.env.NEXT_PUBLIC_PKPAY_PUBLISHABLE_KEY?.startsWith('pk_test_') ||
     process.env.PKPAY_MODE === 'test';
 
   const activeMode = isTestKey ? 'test' : 'live';
