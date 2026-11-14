@@ -28,6 +28,8 @@ Install the dedicated package designed specifically for your stack — no confus
 
 ### 1. Next.js App Router (`@pkpayplus/nextjs`)
 
+> 💡 **Complete Reference App**: Check out the official [Next.js App Router Storefront Example](./examples/nextjs) with dynamic dashboard products and Server Actions.
+
 Install:
 
 ```bash
