@@ -80,7 +80,7 @@ PKPAY_SECRET_KEY=sk_test_your_secret_key_here
 PKPAY_MERCHANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 
 # Public key for client-side dialog initialization
-NEXT_PUBLIC_PKPAY_KEY=pk_test_your_publishable_key_here
+NEXT_PUBLIC_PKPAY_PUBLISHABLE_KEY=pk_test_your_publishable_key_here
 
 # Base URL for redirects (default: http://localhost:3000)
 NEXT_PUBLIC_APP_URL=http://localhost:3000
