@@ -4,6 +4,16 @@ import { PKPayPlusButton } from '@pkpayplus/react';
 import type { Product } from '@pkpayplus/core';
 import { createModalCheckout, createRedirectCheckout } from '@/app/actions/checkout';
 import { useState } from 'react';
+import Link from 'next/link';
+import {
+  Frame,
+  FramePanel,
+  FrameTitle,
+  FrameDescription,
+} from '@/components/ui/frame';
+import { buttonVariants } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface ExtendedPrice {
   links?: Array<{ id: string; url?: string; active?: boolean }>;
@@ -54,126 +64,124 @@ export function ProductCard({ product }: { product: ExtendedProduct }) {
       : null;
 
   return (
-    <div className="group bg-white rounded-3xl border border-slate-200/90 shadow-sm hover:shadow-2xl hover:border-blue-200 transition-all duration-300 flex flex-col justify-between overflow-hidden">
-      <div>
-        {/* Real Product Image Area */}
-        <div className="relative w-full h-64 bg-slate-100 overflow-hidden flex items-center justify-center">
+    <Frame className="w-full">
+      <FramePanel className="flex flex-col gap-4 p-5">
+        {/* Product Image Area */}
+        <div className="relative aspect-video w-full overflow-hidden rounded-lg border border-border/60 bg-muted/30 flex items-center justify-center">
           {product.cover_url ? (
             <img
               src={product.cover_url}
               alt={product.name}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
             />
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 via-slate-100 to-blue-50/40 text-slate-300">
-              <span className="text-6xl">📦</span>
+            <span className="text-4xl text-muted-foreground/40 select-none">📦</span>
+          )}
+
+          {product.sku && (
+            <div className="absolute top-2.5 left-2.5">
+              <Badge variant="outline" size="sm" className="bg-background/90 backdrop-blur-xs text-[10px]">
+                {product.sku}
+              </Badge>
             </div>
           )}
 
-          {/* Badges Overlay */}
-          <div className="absolute top-3.5 left-3.5 flex flex-wrap gap-1.5">
-            <span className="px-3 py-1 rounded-full text-[11px] font-bold tracking-wider uppercase bg-white/95 text-slate-800 shadow-sm backdrop-blur-md">
-              {product.sku || (product.is_virtual ? 'Digital' : 'In Stock')}
-            </span>
-          </div>
-
           {formattedComparePrice && (
-            <div className="absolute top-3.5 right-3.5">
-              <span className="px-2.5 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-500 text-white shadow-sm">
-                Save
-              </span>
+            <div className="absolute top-2.5 right-2.5">
+              <Badge variant="destructive" size="sm" className="text-[10px] font-bold">
+                Sale
+              </Badge>
             </div>
           )}
         </div>
 
         {/* Product Details */}
-        <div className="p-6">
-          <div className="flex items-start justify-between gap-2 mb-2">
-            <h3 className="text-xl font-extrabold text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <FrameTitle className="text-base font-semibold text-foreground truncate">
               {product.name}
-            </h3>
-          </div>
-
-          <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed min-h-[40px]">
-            {product.description || product.short_description || 'High quality product fulfilled with instant payment confirmation.'}
-          </p>
-
-          <div className="mt-5 pt-4 border-t border-slate-100 flex items-baseline justify-between">
-            <div className="flex items-baseline gap-2">
-              <span className="text-2xl font-black text-slate-900 tracking-tight">
-                {formattedPrice}
-              </span>
+            </FrameTitle>
+            <div className="flex items-baseline gap-1.5 shrink-0">
+              <span className="font-bold text-sm text-foreground">{formattedPrice}</span>
               {formattedComparePrice && (
-                <span className="text-sm font-semibold text-slate-400 line-through">
+                <span className="text-xs text-muted-foreground line-through">
                   {formattedComparePrice}
                 </span>
               )}
             </div>
-
-            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-              Verified
-            </span>
           </div>
 
-          {/* Error Message */}
-          {errorMessage && (
-            <div className="mt-3 p-3 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700">
-              {errorMessage}
-            </div>
-          )}
+          <FrameDescription className="text-xs text-muted-foreground line-clamp-2 leading-relaxed min-h-8">
+            {product.description || product.short_description || 'Direct merchant catalog product.'}
+          </FrameDescription>
+        </div>
 
-          {/* Success Notification */}
-          {successInfo && (
-            <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 font-medium">
-              ✓ {successInfo}
-            </div>
+        {/* Dual Checkout Buttons */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+          <PKPayPlusButton
+            buttonText="Inline Checkout"
+            className={cn(
+              buttonVariants({ variant: 'default', size: 'default' })
+            )}
+            onSessionCreate={async () => {
+              setErrorMessage(null);
+              try {
+                const { iframeUrl, sessionId } = await createModalCheckout(product.id);
+                return { iframe_url: iframeUrl, session_id: sessionId };
+              } catch (err: unknown) {
+                setErrorMessage((err as Error)?.message || 'Checkout failed');
+                throw err;
+              }
+            }}
+            onSuccess={(data) => {
+              if (data?.sessionId) {
+                window.location.href = `/checkout/success?session_id=${data.sessionId}`;
+              } else {
+                setSuccessInfo('Payment completed successfully!');
+              }
+            }}
+          />
+
+          {hostedUrl ? (
+            <Link
+              href={hostedUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: 'outline', size: 'default' })
+              )}
+            >
+              <span>Hosted Checkout</span>
+            </Link>
+          ) : (
+            <form action={createRedirectCheckout} className="w-full">
+              <input type="hidden" name="productId" value={product.id} />
+              <button
+                type="submit"
+                className={cn(
+                  buttonVariants({ variant: 'outline', size: 'default' }),
+                  'w-full cursor-pointer font-medium text-xs tracking-tight justify-center h-9 sm:h-8'
+                )}
+              >
+                Hosted Checkout
+              </button>
+            </form>
           )}
         </div>
-      </div>
 
-      {/* Modern Checkout Footer */}
-      <div className="p-6 pt-0 space-y-3">
-        {/* In-App Modal Dialog Checkout Button */}
-        <PKPayPlusButton
-          buttonText="Buy Now"
-          className="w-full py-3.5 px-5 rounded-2xl font-bold text-sm bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer"
-          onSessionCreate={async () => {
-            setErrorMessage(null);
-            try {
-              const { iframeUrl, sessionId } = await createModalCheckout(product.id);
-              return { iframe_url: iframeUrl, session_id: sessionId };
-            } catch (err: unknown) {
-              setErrorMessage((err as Error)?.message || 'Checkout failed');
-              throw err;
-            }
-          }}
-          onSuccess={(data) => {
-            setSuccessInfo(`Payment completed! Session: ${data.sessionId}`);
-          }}
-        />
-
-        {/* Hosted Payment Page: Direct Link to https://pay.pkpayplus.com/l/<link_id> */}
-        {hostedUrl ? (
-          <a
-            href={hostedUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="w-full py-2 px-3 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors inline-flex items-center justify-center gap-1"
-          >
-            Or open hosted checkout page ↗
-          </a>
-        ) : (
-          <form action={createRedirectCheckout} className="text-center">
-            <input type="hidden" name="productId" value={product.id} />
-            <button
-              type="submit"
-              className="w-full py-2 px-3 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition-colors inline-flex items-center justify-center gap-1"
-            >
-              Or open hosted checkout page →
-            </button>
-          </form>
+        {/* Status / Error Alerts if Any */}
+        {errorMessage && (
+          <div className="p-2.5 rounded-lg bg-destructive/8 text-destructive-foreground text-xs border border-destructive/20">
+            {errorMessage}
+          </div>
         )}
-      </div>
-    </div>
+
+        {successInfo && (
+          <div className="p-2.5 rounded-lg bg-success/8 text-success-foreground text-xs border border-success/20">
+            ✓ {successInfo}
+          </div>
+        )}
+      </FramePanel>
+    </Frame>
   );
 }

@@ -54,11 +54,27 @@ export async function createModalCheckout(productId: string): Promise<CheckoutRe
     throw new Error(`Product "${product.name || productId}" does not have an active price configured on the dashboard.`);
   }
 
-  // 2. Create the checkout session securely on the server
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000').replace(/\/$/, '');
+
+  // 2. Create the checkout session securely on the server with customer & billing details
   const session = await pkpayServer.checkoutSessions.create({
     amount: defaultPrice.unit_amount,
     currency: defaultPrice.currency,
     checkout_flow: 'iframe',
+    success_url: `${appUrl}/checkout/success`,
+    cancel_url: `${appUrl}/checkout/cancel`,
+    customer: {
+      name: 'Test Customer',
+      email: 'customer@example.com',
+      phone: '+923001234567',
+      billing: {
+        address_1: 'House 123, Street 4',
+        city: 'Lahore',
+        state: 'Punjab',
+        country: 'PK',
+        postcode: '54000',
+      },
+    },
     cart: {
       items: [
         {
@@ -131,6 +147,18 @@ export async function createRedirectCheckout(formData: FormData) {
     checkout_flow: 'redirect',
     success_url: `${appUrl}/checkout/success`,
     cancel_url: `${appUrl}/checkout/cancel`,
+    customer: {
+      name: 'Test Customer',
+      email: 'customer@example.com',
+      phone: '+923001234567',
+      billing: {
+        address_1: 'House 123, Street 4',
+        city: 'Lahore',
+        state: 'Punjab',
+        country: 'PK',
+        postcode: '54000',
+      },
+    },
     cart: {
       items: [
         {
